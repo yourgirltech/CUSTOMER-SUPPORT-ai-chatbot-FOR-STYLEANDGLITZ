@@ -1,0 +1,232 @@
+{
+  "name": "Style & Glitz AI Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! \ud83d\udc4b\nMy name is MO. How can I assist you today?",
+        "options": {
+          "allowedOrigins": "*",
+          "inputPlaceholder": "Ask about a product...",
+          "subtitle": "Ask about our watches & moissanite jewelry",
+          "title": "Style & Glitz Assistant",
+          "responseMode": "lastNode"
+        }
+      },
+      "id": "e8d59e28-72d3-41da-81b4-f2438f627a03",
+      "name": "Style & Glitz Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [-32, 112],
+      "webhookId": "REGENERATE_ON_IMPORT"
+    },
+    {
+      "parameters": {
+        "needsFallback": true,
+        "options": {
+          "systemMessage": "=You are the AI shopping assistant for Style & Glitz, a luxury e-commerce store selling fine watches and GRA-certified moissanite jewelry. You have access to a tool that fetches the real, current product catalog from Supabase. Ground every answer about price, stock, material, or certification strictly in the data returned by that tool. Never invent or guess a price, stock level, or certification detail.\n\nSTORE POLICIES \u2014 ground every policy answer strictly in these facts, and never invent details beyond them:\n- Delivery: same-day within Lagos; 3-7 business working days elsewhere in Nigeria; 10-15 working days internationally. Occasionally a delivery may run up to 3 extra days past its scheduled window.\n- Returns & refunds: items are not returnable unless the fault is ours. No refunds except when we are unable to deliver what was ordered. Items that are delivered and then mishandled by the customer are not eligible for any refund.\n- Exchanges: handled under their own separate terms and conditions on a case-by-case basis \u2014 for specifics, direct the customer to the concierge team rather than guessing.\n- Guarantee: every wristwatch order comes with a 1-year guarantee.\n- Moissanite certification: every moissanite piece comes with the necessary GRA certification.\n- Diamond tester: moissanite orders above \u20a61,000,000 include a free diamond tester; below that, a tester can be purchased separately for \u20a620,000.\n- Authenticity: our wristwatches are strictly high-quality clone/look-alike pieces. Style & Glitz is not affiliated with, endorsed by, or authorized by any of the brands referenced (Rolex, Patek Philippe, Audemars Piguet, Cartier, Hublot, Casio G-Shock, or others) \u2014 be upfront about this if asked.\n\nHOW TO PLACE AN ORDER \u2014 walk customers through this real flow when asked how to buy or order, and never invent steps or pages that are not listed here. Reference pages only by their relative path exactly as written (e.g. /signup, /login, /watches, /moissanite) \u2014 never invent or guess a domain name for them:\n1. Create an account at /signup (or sign in at /login if they already have one).\n2. Browse by asking me directly, or via the /watches and /moissanite pages.\n3. Open a piece and tap Add to Cart.\n4. Go to /cart \u2014 checkout requires being signed in and having a shipping address saved under My Account (/account).\n5. Checkout redirects to Paystack for secure payment.\n\nORDER & ACCOUNT LOOKUP \u2014 you have tools (Order History Lookup, Customer Profile Lookup, Order Items Lookup) to check a customer's OWN order history, saved profile, and order line-items, but only for the customer currently in this conversation, never anyone else's.\n{{ $json.metadata && $json.metadata.customerId ? 'CUSTOMER STATUS: this visitor is logged in \u2014 you may use the Order History Lookup, Customer Profile Lookup, and Order Items Lookup tools freely for them. Use Order History Lookup first, then Order Items Lookup with the specific order ID if they want line-item detail on a particular order.' : 'CUSTOMER STATUS: this visitor is NOT logged in \u2014 do not attempt any order, profile, or item lookup. If they ask about an order or their account, warmly tell them you will need them signed in first, point them to /login, and offer to help with anything else in the meantime.' }}\nWhen you do look up order, profile, or item data, answer strictly from what the tools return \u2014 status, dates, totals, items, shipping address on file. Never guess at why something technical went wrong (a failed payment, a stuck delivery, a missing confirmation) \u2014 if the data does not explain it, say so plainly and escalate to the concierge team rather than speculating.\n\nFor anything else outside product Q&A, these policies, ordering help, or order lookups (price negotiation, complaints, anything you are unsure about), tell the customer clearly you cannot help with that and point them to our concierge team: WhatsApp (https://wa.me/2349036423694), Instagram DM (@styleandglitzz), or email (styleandglitz@gmail.com). Keep responses warm, concise, and boutique in tone."
+        }
+      },
+      "id": "1df52c9f-5bad-465f-8cd8-30b6d1ef37e3",
+      "name": "Style & Glitz Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [288, 80],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {},
+      "id": "f939ffa0-b397-43c8-b96a-119ddc378a04",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [384, 352]
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Fetches the current product catalog for Style & Glitz, including name, price, material, certification, and stock status. Use this whenever a customer asks about specific products, prices, availability, or certifications.",
+        "operation": "getAll",
+        "tableId": "products",
+        "returnAll": true,
+        "filterType": "none"
+      },
+      "id": "efbfb699-ca10-4d39-bde2-44f380a766f9",
+      "name": "Product Catalog Lookup",
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [640, 416],
+      "credentials": {
+        "supabaseApi": { "id": "YOUR_SUPABASE_CREDENTIAL_ID", "name": "Supabase account" }
+      }
+    },
+    {
+      "parameters": { "options": { "temperature": 0.4 } },
+      "id": "e92b78ac-97cc-44e2-94a7-e76492f3aaf2",
+      "name": "Gemini Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [0, 432],
+      "credentials": {
+        "googlePalmApi": { "id": "YOUR_GEMINI_CREDENTIAL_ID", "name": "Google Gemini(PaLM) Api account" }
+      }
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "mode": "list", "value": "claude-sonnet-4-6", "cachedResultName": "Claude Sonnet 4.6" },
+        "options": {}
+      },
+      "id": "27e353e2-6b36-4931-b106-6bbcd5796263",
+      "name": "Claude Fallback Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [208, 480],
+      "credentials": {
+        "anthropicApi": { "id": "YOUR_ANTHROPIC_CREDENTIAL_ID", "name": "Anthropic account" }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fallback-output",
+              "name": "output",
+              "value": "Sorry, I'm currently unavailable. Please reach out to us directly at +2349036423694 or styleandglitz@gmail.com and we'll help right away.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bad500de-c53c-4f7f-bda4-f05b3799101d",
+      "name": "Fallback Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [752, -32]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict", "version": 2 },
+          "conditions": [
+            { "leftValue": "={{ $json.output }}", "rightValue": "", "operator": { "type": "string", "operation": "notEmpty" } }
+          ]
+        },
+        "options": {}
+      },
+      "id": "697ba35d-cf3a-4a44-acd2-d99644a0b923",
+      "name": "Response Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [720, 208]
+    },
+    {
+      "id": "f527fb2c-1424-4f64-9da5-eff6729fc5aa",
+      "name": "Order History Lookup",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [800, 336],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR_PROJECT_REF.supabase.co/rest/v1/orders",
+        "authentication": "none",
+        "descriptionType": "manual",
+        "toolDescription": "Fetches the currently authenticated customer's own order history from Supabase using their real session \u2014 order status, dates, totals, and shipping address on file. Real database security enforces that this can only ever return the logged-in customer's own rows. Use this when a logged-in customer asks about an order's status, delivery progress, past orders, or what they've bought.",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "*" },
+            { "name": "customer_id", "value": "=eq.{{ $('Style & Glitz Chat Trigger').item.json.metadata.customerId }}" },
+            { "name": "order", "value": "created_at.desc" }
+          ]
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SUPABASE_ANON_KEY" },
+            { "name": "Authorization", "value": "=Bearer {{ $('Style & Glitz Chat Trigger').item.json.metadata.accessToken }}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "c11faac0-bf0c-45c1-b0d4-cee2cee71152",
+      "name": "Customer Profile Lookup",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [960, 336],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR_PROJECT_REF.supabase.co/rest/v1/profiles",
+        "authentication": "none",
+        "descriptionType": "manual",
+        "toolDescription": "Fetches the currently authenticated customer's own saved profile using their real session \u2014 full name, phone, and shipping address on file. Real database security enforces that this can only ever return the logged-in customer's own row. Use this to cross-check what contact or address information is on file when helping diagnose a delivery or account issue.",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "*" },
+            { "name": "id", "value": "=eq.{{ $('Style & Glitz Chat Trigger').item.json.metadata.customerId }}" }
+          ]
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SUPABASE_ANON_KEY" },
+            { "name": "Authorization", "value": "=Bearer {{ $('Style & Glitz Chat Trigger').item.json.metadata.accessToken }}" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "d214e81b-be8f-4d98-b1d0-ced473f9543a",
+      "name": "Order Items Lookup",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [1120, 336],
+      "parameters": {
+        "method": "GET",
+        "url": "https://YOUR_PROJECT_REF.supabase.co/rest/v1/order_items",
+        "authentication": "none",
+        "descriptionType": "manual",
+        "toolDescription": "Fetches the line items (product names, prices, quantities) for a specific order, given its order ID from a previous Order History Lookup result. Real database security enforces that this only ever returns items belonging to an order owned by the currently logged-in customer \u2014 it cannot be used to see another customer's order contents even if a different order ID is supplied.",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "*" },
+            { "name": "order_id", "value": "=eq.{{ $fromAI('order_id', 'The order ID to fetch line-item details for, from a previous Order History Lookup result', 'string') }}" }
+          ]
+        },
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "YOUR_SUPABASE_ANON_KEY" },
+            { "name": "Authorization", "value": "=Bearer {{ $('Style & Glitz Chat Trigger').item.json.metadata.accessToken }}" }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Style & Glitz Chat Trigger": { "main": [[{ "node": "Style & Glitz Assistant", "type": "main", "index": 0 }]] },
+    "Conversation Memory": { "ai_memory": [[{ "node": "Style & Glitz Assistant", "type": "ai_memory", "index": 0 }]] },
+    "Product Catalog Lookup": { "ai_tool": [[{ "node": "Style & Glitz Assistant", "type": "ai_tool", "index": 0 }]] },
+    "Style & Glitz Assistant": { "main": [[{ "node": "Response Check", "type": "main", "index": 0 }], [{ "node": "Fallback Message", "type": "main", "index": 0 }]] },
+    "Response Check": { "main": [null, [{ "node": "Fallback Message", "type": "main", "index": 0 }]] },
+    "Gemini Model": { "ai_languageModel": [[{ "node": "Style & Glitz Assistant", "type": "ai_languageModel", "index": 0 }]] },
+    "Claude Fallback Model": { "ai_languageModel": [[{ "node": "Style & Glitz Assistant", "type": "ai_languageModel", "index": 1 }]] },
+    "Order History Lookup": { "ai_tool": [[{ "node": "Style & Glitz Assistant", "type": "ai_tool", "index": 0 }]] },
+    "Customer Profile Lookup": { "ai_tool": [[{ "node": "Style & Glitz Assistant", "type": "ai_tool", "index": 0 }]] },
+    "Order Items Lookup": { "ai_tool": [[{ "node": "Style & Glitz Assistant", "type": "ai_tool", "index": 0 }]] }
+  },
+  "meta": {
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  }
+}
