@@ -2,6 +2,8 @@
 
 A customer-facing AI shopping assistant built in n8n for [Style & Glitz](https://styleandglitz.netlify.app), a luxury e-commerce platform for fine watches and moissanite jewelry. Answers product questions, store policy questions, and — for logged-in customers — their own real order history. The guiding rule throughout: **the bot never invents a price, policy, or order detail.** Everything it states is either grounded in a live tool call or explicitly deferred to a human.
 
+> **In production on the client's live store.** This repository is the build record: the full source of the assistant, with customer data and credentials removed.
+
 Paired with an embedded [`@n8n/chat`](https://www.npmjs.com/package/@n8n/chat) widget on the frontend, themed to match the site's own design system.
 
 ## Why this is more than "connect a chatbot to a database"
